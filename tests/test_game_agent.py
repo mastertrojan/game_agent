@@ -21,9 +21,14 @@ class IsolationTest(unittest.TestCase):
         self.game = isolation.Board(self.player1, self.player2)
 
     def test_example(self):
-        # TODO: All methods must start with "test_"
-        self.fail("Hello, World!")
+        print(self.game.score(self.game))
+        IP = game_agent.IsolationPlayer
+        # IP.time_left = self.timer
+        minimax = game_agent.MinimaxPlayer(IP)
+        minimax.minimax(self.game, 2)
 
+    def timer(self):
+        return 1
 
 if __name__ == '__main__':
     unittest.main()

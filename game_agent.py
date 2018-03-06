@@ -171,6 +171,9 @@ class MinimaxPlayer(IsolationPlayer):
         return best_move
 
     def minimax(self, game, depth):
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
 
@@ -209,11 +212,65 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        best_score = float("-inf")
+        best_move = None
+        for m in game.get_legal_moves():
+            
+            # call has been updated with a depth limit
+            v = self.min_value(game.forecast_move(m), depth - 1)
+            if v > best_score:
+                best_score = v
+                best_move = m
+        return best_move
+
+    def min_value(self, game, depth):
+        """ Return the value for a win (+1) if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+        # TODO: add a depth parameter to the function signature.
+        if self.terminal_test(game):
+            return 1  # by Assumption 2
+            
+        # TODO: add a new conditional test to cut off search
+        #       when the depth parameter reaches 0 -- for now
+        #       just return a value of 0 at the depth limit
+        
+        v = float("inf")
+        for m in game.get_legal_moves():
+            # TODO: pass a decremented depth parameter to each
+            #       recursive call
+            v = min(v, self.max_value(game.forecast_move(m), depth))
+        return v
+
+    def max_value(self, game, depth):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+        # TODO: add a depth parameter to the function signature.
+        if self.terminal_test(game):
+            return -1  # by assumption 2
+        
+        # TODO: add a new conditional test to cut off search
+        #       when the depth parameter reaches 0 -- for now
+        #       just return a value of 0 at the depth limit
+        
+        v = float("-inf")
+        for m in game.get_legal_moves():
+            # TODO: pass a decremented depth parameter to each
+            #       recursive call
+            v = max(v, self.min_value(game.forecast_move(m), depth))
+        return v
+
+    def terminal_test(self, game):
+        return len(game.get_legal_moves()) < 1
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -306,4 +363,61 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        best_score = float("-inf")
+        best_move = None
+        for m in game.get_legal_moves():
+            
+            # call has been updated with a depth limit
+            v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
+            if v > best_score:
+                best_score = v
+                best_move = m
+        return best_move
+
+    def min_value(self, game, depth, alpha, beta):
+        """ Return the value for a win (+1) if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+        # TODO: add a depth parameter to the function signature.
+        if self.terminal_test(game):
+            return 1  # by Assumption 2
+            
+        # TODO: add a new conditional test to cut off search
+        #       when the depth parameter reaches 0 -- for now
+        #       just return a value of 0 at the depth limit
+        
+        v = float("inf")
+        for m in game.get_legal_moves():
+            # TODO: pass a decremented depth parameter to each
+            #       recursive call
+            v = min(v, self.max_value(game.forecast_move(m), depth))
+        return min(v, alpha)
+
+    def max_value(self, game, depth, alpha, beta):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+        # TODO: add a depth parameter to the function signature.
+        if self.terminal_test(game):
+            return -1  # by assumption 2
+        
+        # TODO: add a new conditional test to cut off search
+        #       when the depth parameter reaches 0 -- for now
+        #       just return a value of 0 at the depth limit
+        
+        v = float("-inf")
+        for m in game.get_legal_moves():
+            # TODO: pass a decremented depth parameter to each
+            #       recursive call
+            v = max(v, self.min_value(game.forecast_move(m), depth, alpha, beta))
+        
+        return max(v, beta)
+
+    def terminal_test(self, game):
+        return len(game.get_legal_moves()) < 1
