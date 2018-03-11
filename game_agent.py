@@ -216,6 +216,10 @@ class MinimaxPlayer(IsolationPlayer):
         # TODO: finish this function!
         best_score = float("-inf")
         best_move = None
+
+        # if self.score(game, game._active_player) #check self score for picking nodes!!!!
+        #     return best_move
+
         for m in game.get_legal_moves():
             
             # call has been updated with a depth limit
@@ -223,6 +227,7 @@ class MinimaxPlayer(IsolationPlayer):
             if v > best_score:
                 best_score = v
                 best_move = m
+
         return best_move
 
     def min_value(self, game, depth):
@@ -232,19 +237,22 @@ class MinimaxPlayer(IsolationPlayer):
         """
         if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
-        # TODO: add a depth parameter to the function signature.
+        
         if self.terminal_test(game):
             return 1  # by Assumption 2
             
         # TODO: add a new conditional test to cut off search
         #       when the depth parameter reaches 0 -- for now
         #       just return a value of 0 at the depth limit
-        
+        if depth <= 0:  # "==" could be used, but "<=" is safer 
+            return self.score(game, self)
+
         v = float("inf")
         for m in game.get_legal_moves():
             # TODO: pass a decremented depth parameter to each
             #       recursive call
-            v = min(v, self.max_value(game.forecast_move(m), depth))
+            v = min(v, self.max_value(game.forecast_move(m), depth - 1))
+
         return v
 
     def max_value(self, game, depth):
@@ -258,6 +266,8 @@ class MinimaxPlayer(IsolationPlayer):
         if self.terminal_test(game):
             return -1  # by assumption 2
         
+        if depth <= 0:  # "==" could be used, but "<=" is safer 
+            return self.score(game, self)
         # TODO: add a new conditional test to cut off search
         #       when the depth parameter reaches 0 -- for now
         #       just return a value of 0 at the depth limit
@@ -266,7 +276,7 @@ class MinimaxPlayer(IsolationPlayer):
         for m in game.get_legal_moves():
             # TODO: pass a decremented depth parameter to each
             #       recursive call
-            v = max(v, self.min_value(game.forecast_move(m), depth))
+            v = max(v, self.min_value(game.forecast_move(m), depth - 1))
         return v
 
     def terminal_test(self, game):
@@ -312,7 +322,18 @@ class AlphaBetaPlayer(IsolationPlayer):
         self.time_left = time_left
 
         # TODO: finish this function!
-        raise NotImplementedError
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -365,14 +386,18 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: finish this function!
         best_score = float("-inf")
         best_move = None
+
         for m in game.get_legal_moves():
-            
             # call has been updated with a depth limit
             v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
+            
             if v > best_score:
                 best_score = v
                 best_move = m
+            alpha = max(alpha, best_score)
+
         return best_move
+
 
     def min_value(self, game, depth, alpha, beta):
         """ Return the value for a win (+1) if the game is over,
@@ -384,7 +409,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: add a depth parameter to the function signature.
         if self.terminal_test(game):
             return 1  # by Assumption 2
-            
+        
+        if depth <= 0:  # "==" could be used, but "<=" is safer 
+            return self.score(game, self)
         # TODO: add a new conditional test to cut off search
         #       when the depth parameter reaches 0 -- for now
         #       just return a value of 0 at the depth limit
@@ -393,8 +420,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         for m in game.get_legal_moves():
             # TODO: pass a decremented depth parameter to each
             #       recursive call
-            v = min(v, self.max_value(game.forecast_move(m), depth))
-        return min(v, alpha)
+            v = min(v, self.max_value(game.forecast_move(m), depth - 1, alpha, beta))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+            
+        return v
 
     def max_value(self, game, depth, alpha, beta):
         """ Return the value for a loss (-1) if the game is over,
@@ -410,14 +441,19 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: add a new conditional test to cut off search
         #       when the depth parameter reaches 0 -- for now
         #       just return a value of 0 at the depth limit
-        
+        if depth <= 0:  # "==" could be used, but "<=" is safer 
+            return self.score(game, self)
+
         v = float("-inf")
         for m in game.get_legal_moves():
             # TODO: pass a decremented depth parameter to each
             #       recursive call
-            v = max(v, self.min_value(game.forecast_move(m), depth, alpha, beta))
+            v = max(v, self.min_value(game.forecast_move(m), depth - 1, alpha, beta))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
         
-        return max(v, beta)
+        return v
 
     def terminal_test(self, game):
         return len(game.get_legal_moves()) < 1
