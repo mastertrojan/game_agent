@@ -268,14 +268,9 @@ class MinimaxPlayer(IsolationPlayer):
         
         if depth <= 0:  # "==" could be used, but "<=" is safer 
             return self.score(game, self)
-        # TODO: add a new conditional test to cut off search
-        #       when the depth parameter reaches 0 -- for now
-        #       just return a value of 0 at the depth limit
         
         v = float("-inf")
         for m in game.get_legal_moves():
-            # TODO: pass a decremented depth parameter to each
-            #       recursive call
             v = max(v, self.min_value(game.forecast_move(m), depth - 1))
         return v
 
@@ -380,21 +375,24 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        best_move = (-1, -1)
+        best_score = float("-inf")
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        best_score = float("-inf")
-        best_move = None
-
         for m in game.get_legal_moves():
             # call has been updated with a depth limit
-            v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
+            v = self.max_value(game.forecast_move(m), depth - 1, alpha, beta)
             
+            
+
             if v > best_score:
                 best_score = v
                 best_move = m
-            alpha = max(alpha, best_score)
+            
+            alpha = max(alpha, v)
+            beta = min(beta, v)
 
         return best_move
 
