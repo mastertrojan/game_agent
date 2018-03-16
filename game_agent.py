@@ -35,7 +35,8 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    heuristic_value = float("-inf")
+    return heuristic_value
 
 
 def custom_score_2(game, player):
@@ -385,8 +386,6 @@ class AlphaBetaPlayer(IsolationPlayer):
             # call has been updated with a depth limit
             v = self.max_value(game.forecast_move(m), depth - 1, alpha, beta)
             
-            
-
             if v > best_score:
                 best_score = v
                 best_move = m
@@ -396,6 +395,39 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         return best_move
 
+    def max_value(self, game, depth, alpha, beta):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+
+#      v ← MAX(v, MIN-VALUE(RESULT(state, a), α, β))
+#      if v ≥ β then return v
+#      α ← MAX(α, v)
+#          return v
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+        # TODO: add a depth parameter to the function signature.
+        if self.terminal_test(game):
+            return -1  # by assumption 2
+        
+        # TODO: add a new conditional test to cut off search
+        #       when the depth parameter reaches 0 -- for now
+        #       just return a value of 0 at the depth limit
+        if depth <= 0:  # "==" could be used, but "<=" is safer 
+            return self.score(game, self)
+
+        v = float("-inf")
+        for m in game.get_legal_moves():
+            # TODO: pass a decremented depth parameter to each
+            #       recursive call
+            v = max(v, self.min_value(game.forecast_move(m), depth - 1, alpha, beta))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        
+        return v
 
     def min_value(self, game, depth, alpha, beta):
         """ Return the value for a win (+1) if the game is over,
@@ -425,33 +457,6 @@ class AlphaBetaPlayer(IsolationPlayer):
             
         return v
 
-    def max_value(self, game, depth, alpha, beta):
-        """ Return the value for a loss (-1) if the game is over,
-        otherwise return the maximum value over all legal child
-        nodes.
-        """
-        if self.time_left() < self.TIMER_THRESHOLD:
-                raise SearchTimeout()
-        # TODO: add a depth parameter to the function signature.
-        if self.terminal_test(game):
-            return -1  # by assumption 2
-        
-        # TODO: add a new conditional test to cut off search
-        #       when the depth parameter reaches 0 -- for now
-        #       just return a value of 0 at the depth limit
-        if depth <= 0:  # "==" could be used, but "<=" is safer 
-            return self.score(game, self)
-
-        v = float("-inf")
-        for m in game.get_legal_moves():
-            # TODO: pass a decremented depth parameter to each
-            #       recursive call
-            v = max(v, self.min_value(game.forecast_move(m), depth - 1, alpha, beta))
-            if v >= beta:
-                return v
-            alpha = max(alpha, v)
-        
-        return v
 
     def terminal_test(self, game):
         return len(game.get_legal_moves()) < 1
